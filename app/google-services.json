@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "583165666676",
+    "project_id": "agro-bot-37d6e",
+    "storage_bucket": "agro-bot-37d6e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:583165666676:android:1accdf24c39e8590553821",
+        "android_client_info": {
+          "package_name": "com.example.agrobot"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBME-jesrojXD7VbzK9LMokKpN4Q1pmdj8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
