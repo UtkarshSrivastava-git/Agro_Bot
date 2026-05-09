@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,7 +39,8 @@ import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private lateinit var ttsMgr: TtsManager
-    private lateinit var chatVm: ChatViewModel
+    //private lateinit var chatVm: ChatViewModel
+    private val chatVm: ChatViewModel by viewModels()
     private var selectedLang by mutableStateOf("en") 
 
     @RequiresApi(Build.VERSION_CODES.S)
@@ -51,7 +53,7 @@ class MainActivity : ComponentActivity() {
         val chatApi = NetworkModule.create(baseUrl)
         val repo = ChatRepository(chatApi, FirebaseFirestore.getInstance())
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: "anon"
-        chatVm = ChatViewModel(repo, userId)
+
 
         enableEdgeToEdge()
         setContent {

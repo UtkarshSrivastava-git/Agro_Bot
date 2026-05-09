@@ -58,7 +58,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
     implementation("androidx.navigation:navigation-compose:2.9.6")
     implementation("androidx.compose.runtime:runtime")
-    implementation(platform("androidx.compose:compose-bom:2024.02.01"))
 
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.foundation:foundation")
@@ -70,6 +69,8 @@ dependencies {
     // Retrofit
     implementation("com.squareup.retrofit2:retrofit:3.0.0")
     implementation("com.squareup.retrofit2:converter-moshi:3.0.0")
+    implementation("com.squareup.retrofit2:converter-gson:3.0.0")
+
 
 // ML Kit – On-device Translation
     implementation("com.google.mlkit:translate:17.0.3")

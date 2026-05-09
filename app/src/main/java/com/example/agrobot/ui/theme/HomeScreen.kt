@@ -1,6 +1,7 @@
 package com.example.agrobot.ui.theme
 
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -138,29 +139,21 @@ fun HomeScreen(
                     onClick = { onNavigate("chat") }
                 )
             }
-            item {
-                DashboardCard(
-                    label = translatedLabels["scan_crop"] ?: labels["scan_crop"]!!,
-                    iconResId = R.drawable.camera,
-                    onClick = { onNavigate("scan_crop") }
-                )
-            }
+
         }
     }
 }
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardCard(label: String, iconResId: Int, onClick: () -> Unit) {
     Card(
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .height(180.dp)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onClick
-            ),
+            .height(180.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        border = BorderStroke(0.1.dp, Color.Green),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(

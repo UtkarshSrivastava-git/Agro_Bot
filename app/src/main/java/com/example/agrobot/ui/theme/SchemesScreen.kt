@@ -1,15 +1,23 @@
 package com.example.agrobot.ui.theme
 
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,13 +29,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.agrobot.ChatViewModel
+import com.example.agrobot.TranslatorHelper
+import com.example.agrobot.ui.theme.SchemeItem
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import android.content.Context
+import androidx.compose.ui.platform.LocalContext
 
 data class Scheme(
     val title: String = "",
@@ -37,122 +54,181 @@ data class Scheme(
 
 private const val TAG = "GovernmentSchemesScreen"
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Composable
-fun GovernmentSchemesScreen() {
-    var schemes by remember { mutableStateOf<List<Scheme>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+fun GovernmentSchemesScreen(
+    viewModel: ChatViewModel
+) {
+    val schemes = remember { getDefaultSchemes() }
 
-    LaunchedEffect(Unit) {
-        Log.d(TAG, "LaunchedEffect started.")
-        isLoading = true
-        errorMessage = null
-
-        val db = Firebase.firestore
-        val collectionRef = db.collection("schemes")
-
-        try {
-            Log.d(TAG, "Checking Firestore for existing data.")
-            val querySnapshot = collectionRef.get().await()
-
-            if (querySnapshot.isEmpty) {
-                Log.d(TAG, "Firestore collection is empty. Adding default schemes...")
-                withContext(Dispatchers.IO) {
-                    try {
-                        val defaultSchemes = getDefaultSchemes()
-                        Log.d(TAG, "Adding ${defaultSchemes.size} default schemes to Firestore...")
-                        defaultSchemes.forEach { scheme ->
-                            collectionRef.add(scheme).await()
-                        }
-                        Log.d(TAG, "Default schemes stored in Firestore successfully.")
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        errorMessage = "Error storing schemes: ${e.localizedMessage}"
-                        Log.e(TAG, "Error storing default schemes: ", e)
-                    }
-                }
-            } else {
-                Log.d(TAG, "Firestore collection has data. Skipping scraping.")
-            }
-
-            Log.d(TAG, "Fetching schemes from Firestore.")
-            schemes = fetchSchemesFromFirestore()
-            Log.d(TAG, "Fetched ${schemes.size} schemes from Firestore.")
-
-            if (schemes.isEmpty() && errorMessage == null) {
-                errorMessage = "No schemes found in Firestore (and no scraping error)."
-                Log.w(TAG, "No schemes found in Firestore after fetching, and no previous scraping error.")
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            errorMessage = "Error during data process: ${e.localizedMessage}"
-            Log.e(TAG, "Error during data process (Firestore or general): ", e)
-        } finally {
-            Log.d(TAG, "LaunchedEffect finished, isLoading: $isLoading, errorMessage: $errorMessage")
-            isLoading = false
-        }
-    }
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        if (isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(modifier = Modifier.padding(16.dp))
-            }
-        } else {
-            errorMessage?.let { msg ->
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = msg, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(16.dp), textAlign = TextAlign.Center) // Centered text
-                }
-            } ?: run {
-                if (schemes.isNotEmpty()) {
-                    LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-                        items(schemes) { scheme ->
-                            SchemeItem(scheme)
-                        }
-                    }
-                } else {
-                    // This condition is for when schemes are empty AND errorMessage is null.
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("No schemes available.", modifier = Modifier.padding(16.dp))
-                    }
-                }
-            }
+    LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        items(schemes) { scheme ->
+            SchemeItem(scheme,viewModel.userLangTag)
         }
     }
 }
 
+//@Composable
+//fun GovernmentSchemesScreen() {
+//    var schemes by remember { mutableStateOf<List<Scheme>>(emptyList()) }
+//    var isLoading by remember { mutableStateOf(true) }
+//    var errorMessage by remember { mutableStateOf<String?>(null) }
+//
+//    LaunchedEffect(Unit) {
+//        Log.d(TAG, "LaunchedEffect started.")
+//        isLoading = true
+//        errorMessage = null
+//
+//        try {
+//            // Use a timeout to prevent infinite loading if network/rules are hanging
+//            kotlinx.coroutines.withTimeout(10000) {
+//                val db = Firebase.firestore
+//                val collectionRef = db.collection("schemes")
+//
+//                Log.d(TAG, "Checking Firestore for existing data.")
+//                val querySnapshot = collectionRef.get().await()
+//                val defaultSchemes = getDefaultSchemes()
+//
+//                if (querySnapshot.size() < defaultSchemes.size) {
+//                    Log.d(TAG, "Firestore collection incomplete. Syncing ${defaultSchemes.size} schemes...")
+//                    val batch = db.batch()
+//                    defaultSchemes.forEach { scheme ->
+//                        val docRef = collectionRef.document(scheme.title)
+//                        batch.set(docRef, scheme)
+//                    }
+//                    batch.commit().await()
+//                }
+//
+//                val fetched = collectionRef.get().await().documents.mapNotNull {
+//                    it.toObject(Scheme::class.java)
+//                }
+//
+//                schemes = fetched
+//                if (fetched.isEmpty()) {
+//                    errorMessage = "No schemes found in database."
+//                }
+//            }
+//        } catch (_: kotlinx.coroutines.TimeoutCancellationException) {
+//            errorMessage = "Connection timed out. Please check your internet."
+//            Log.e(TAG, "Firestore request timed out")
+//        } catch (e: Exception) {
+//            if (e is kotlinx.coroutines.CancellationException) throw e
+//            Log.e(TAG, "Error processing schemes: ", e)
+//            errorMessage = "Error: ${e.localizedMessage}"
+//        } finally {
+//            isLoading = false
+//            Log.d(TAG, "LaunchedEffect finished. isLoading=false")
+//        }
+//    }
+//
+//    Box(modifier = Modifier.fillMaxSize()) {
+//        if (isLoading) {
+//            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+//                CircularProgressIndicator(modifier = Modifier.padding(16.dp))
+//            }
+//        } else {
+//            errorMessage?.let { msg ->
+//                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+//                    Text(text = msg, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(16.dp), textAlign = TextAlign.Center) // Centered text
+//                }
+//            } ?: run {
+//                if (schemes.isNotEmpty()) {
+//                    LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+//                        items(schemes) { scheme ->
+//                            SchemeItem(scheme)
+//                        }
+//                    }
+//                } else {
+//                    // This condition is for when schemes are empty AND errorMessage is null.
+//                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+//                        Text("No schemes available.", modifier = Modifier.padding(16.dp))
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
+
+@RequiresApi(Build.VERSION_CODES.S)
 @Composable
-fun SchemeItem(scheme: Scheme) {
+fun SchemeItem(scheme: Scheme,
+               userLangTag: String
+) {
+    var translatedTitle by remember { mutableStateOf(scheme.title) }
+    var translatedDesc by remember { mutableStateOf(scheme.description) }
+    val context = LocalContext
+
+    LaunchedEffect(userLangTag) {
+        if (userLangTag != "en") {
+            try {
+                translatedTitle = TranslatorHelper.translateText(
+                    scheme.title,
+                    "en",
+                    userLangTag
+                )
+                translatedDesc = TranslatorHelper.translateText(
+                    scheme.description,
+                    "en",
+                    userLangTag
+                )
+            } catch (e: Exception) {
+                translatedTitle = scheme.title
+                translatedDesc = scheme.description
+            }
+        } else {
+            translatedTitle = scheme.title
+            translatedDesc = scheme.description
+        }
+    }
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 32.dp)
+            .padding(vertical = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Column(modifier = Modifier.padding(8.dp),
-            verticalArrangement = Arrangement.Center) {
-            Text(text = scheme.title, style = MaterialTheme.typography.headlineSmall)
-            Text(text = scheme.description, style = MaterialTheme.typography.bodyMedium)
-        }
-    }
-}
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = translatedTitle,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+            
+            Text(
+                text = translatedDesc,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            
+            if (scheme.link.isNotBlank()) {
+                val context = LocalContext.current
 
-private suspend fun fetchSchemesFromFirestore(): List<Scheme> {
-    val db = Firebase.firestore
-    val schemes = mutableListOf<Scheme>()
-    withContext(Dispatchers.IO) {
-        try {
-            val querySnapshot = db.collection("schemes").get().await()
-            for (document in querySnapshot.documents) {
-                document.toObject(Scheme::class.java)?.let {
-                    schemes.add(it)
+
+                TextButton(
+                    onClick = {
+                        try {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(scheme.link))
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Could not open link", e)
+                        }
+                    },
+                    modifier = Modifier.padding(top = 4.dp)
+                ) {
+                    Text(
+                        text = "Visit Official Website",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            textDecoration = TextDecoration.Underline,
+                            color = MaterialTheme.colorScheme.secondary,
+                            fontWeight = FontWeight.Medium
+                        )
+                    )
                 }
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Log.e(TAG, "Error fetching schemes from Firestore: ", e)
         }
     }
-    return schemes
 }
 
 private fun getDefaultSchemes(): List<Scheme> {

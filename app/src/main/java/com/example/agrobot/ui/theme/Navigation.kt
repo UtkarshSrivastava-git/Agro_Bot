@@ -54,6 +54,10 @@ fun AppNavGraph(
     onLanguageSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    androidx.compose.runtime.LaunchedEffect(userLang) {
+        chatViewModel.userLangTag = userLang
+    }
+
     val translate: suspend (String) -> String = {
         TranslatorHelper.translateText(it, "en", userLang)
     }
@@ -107,7 +111,8 @@ fun AppNavGraph(
         }
 
         composable(BottomNavItem.Schemes.route) {
-            GovernmentSchemesScreen()
+            val viewModel: ChatViewModel = viewModel()
+            GovernmentSchemesScreen(viewModel)
         }
 
         composable("scan_crop") {

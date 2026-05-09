@@ -8,7 +8,10 @@ data class ChatRequest(val message: String,
                        val sessionId: String? = null)
 
 
-data class ChatResponse(val reply: String)
+data class ChatResponse(
+    val reply: String? = null,
+    val error: String? = null
+)
 
 
 interface ChatApi{

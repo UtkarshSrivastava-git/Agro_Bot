@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,6 +21,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -44,6 +44,7 @@ import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import retrofit2.HttpException
 import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
@@ -219,7 +220,7 @@ private fun getWeatherDrawables(mainWeather: String?, dt: Long?, sys: Sys?): Pai
 fun WeatherScreen(
     lang: String,
     navController: NavController, 
-    translate: suspend (String) -> String, // Translate function
+    translate: suspend (String) -> String,
     viewModel: WeatherViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -230,7 +231,7 @@ fun WeatherScreen(
     var backText by remember { mutableStateOf("Back") }
     var getCurrentWeatherText by remember { mutableStateOf("Get Current Weather") }
     var grantPermissionText by remember { mutableStateOf("Grant Permission") }
-    var locationNeededText by remember { mutableStateOf("Location permission needed.") }
+    var locationNeededText by remember { mutableStateOf("Location permission needed.")}
     var currentLocText by remember { mutableStateOf("Current Location") }
     var weatherIconText by remember { mutableStateOf("Weather icon") }
     var humidityText by remember { mutableStateOf("Humidity") }
@@ -290,7 +291,7 @@ fun WeatherScreen(
             sys = successState.data.sys
         )
     } else {
-        Pair(R.drawable.black, R.drawable.india_icon)
+        Pair(R.drawable.lettuce_field_dawn, R.drawable.india_icon)
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -303,7 +304,7 @@ fun WeatherScreen(
 
         IconButton(onClick = { navController.popBackStack() }, modifier = Modifier.align(Alignment.TopStart).padding(top=36.dp)) {
             Icon(
-                imageVector = Icons.Default.ArrowBack,
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = backText, 
                 tint = Color.Unspecified
             )
@@ -318,12 +319,13 @@ fun WeatherScreen(
         ) {
             when (val state = uiState) {
                 is WeatherUiState.Idle -> {
-                     Button(onClick = { locationPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)) }) {
+                     Button(onClick = { locationPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)) },
+                         colors = ButtonDefaults.buttonColors(containerColor = Color.Yellow, contentColor = Color.Black)) {
                         Text(getCurrentWeatherText)
                     }
                 }
                 is WeatherUiState.LocationPermissionNeeded -> {
-                    Text(locationNeededText, color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(locationNeededText, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 22.sp)
                     Button(onClick = { locationPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)) }) {
                         Text(grantPermissionText)
                     }

@@ -23,7 +23,7 @@ class LanguageSelectionViewModel : ViewModel() {
     private val _downloadState = MutableStateFlow<DownloadState>(DownloadState.Idle)
     val downloadState: StateFlow<DownloadState> = _downloadState.asStateFlow()
 
-    private val _navigationEvent = MutableSharedFlow<String>()
+    private val _navigationEvent  = MutableSharedFlow<String>()
     val navigationEvent = _navigationEvent.asSharedFlow()
 
     fun downloadLanguageModel(langCode: String) {
