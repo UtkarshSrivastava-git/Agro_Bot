@@ -1,5 +1,3 @@
-⚠️ Note: This project is currently under development. Some planned features (AI chatbot, crop image analysis) are not yet implemented.
-
 📱 Features Implemented : 
 
 🌍 Multilingual Support
@@ -11,14 +9,13 @@ Provides basic information about crops to help farmers make informed decisions.
 🏛️ Government Schemes (Static)
 Displays predefined government schemes related to agriculture.
 
+🤖 Integrated Google Gemini 2.0 Flash Lite via Firebase Cloud Functions (Node.js) as the AI backend, implementing multi-turn conversation history and a domain-specific system prompt for farming context.
 
-🚧 Features Planned (Not Yet Implemented) : 
+💬 Built a real-time AI chatbot with optimistic UI updates, StateFlow-based reactive state management, and Firestore-backed persistent chat history using batch writes.
 
-🤖 AI Chatbot for farmer assistance
-📷 Crop Image Scanning for analysis using photos
-📡 Dynamic government schemes fetched from live sources
+🎙️ Integrated Speech-to-Text and Text-to-Speech for fully voice-based interaction, improving accessibility for low-literacy rural users.
 
-These features are planned for future development and are not functional yet.
+☁️ Deployed and managed Firebase Cloud Functions on Google Cloud Blaze plan, configuring IAM permissions, Artifact Registry cleanup policies, and runtime environment variables.
 
 
 🛠 Tech Stack :
@@ -27,7 +24,9 @@ These features are planned for future development and are not functional yet.
 *Kotlin
 *Jetpack Compose
 *Firebase
-
+*Google Cloud
+*Javascript
+*Node.js
 
 🎯 Purpose of the Project :
 
